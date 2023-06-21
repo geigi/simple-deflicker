@@ -48,7 +48,7 @@ func runDeflickering(pictures []picture, config configuration) {
 			fmt.Printf("'%v': %v\n", pic.targetPath, err)
 			os.Exit(2)
 		}
-		pic.currentRgbHistogram = generateRgbHistogramFromImage(img)
+		pic.currentRgbHistogram = generateRgbHistogramFromImage(img, config.startY, config.stopY)
 		return pic
 	})
 

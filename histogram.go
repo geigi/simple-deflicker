@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"image"
 	"image/color"
+	"log"
 
 	"github.com/disintegration/imaging"
 )
@@ -20,9 +22,14 @@ type rgbHistogram struct {
 	b histogram
 }
 
-func generateRgbHistogramFromImage(input image.Image) rgbHistogram {
+func generateRgbHistogramFromImage(input image.Image, startY int, stopY int) rgbHistogram {
+	startY, stopY, err := validateStartAndStopY(input, startY, stopY)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	var rgbHistogram rgbHistogram
-	for y := input.Bounds().Min.Y; y < input.Bounds().Max.Y; y++ {
+	for y := startY; y < stopY; y++ {
 		for x := input.Bounds().Min.X; x < input.Bounds().Max.X; x++ {
 			r, g, b, _ := input.At(x, y).RGBA()
 			r = r >> 8
@@ -34,6 +41,26 @@ func generateRgbHistogramFromImage(input image.Image) rgbHistogram {
 		}
 	}
 	return rgbHistogram
+}
+
+func validateStartAndStopY(input image.Image, startY int, stopY int) (int, int, error) {
+	if startY < input.Bounds().Min.Y {
+		return -1, -1, errors.New("startY is smaller than minimum Y of image")
+	}
+
+	if stopY > input.Bounds().Max.Y {
+		return -1, -1, errors.New("stopY is greater than maximum Y of image")
+	}
+
+	if stopY == -1 {
+		stopY = input.Bounds().Max.Y
+	}
+
+	if startY > stopY {
+		return -1, -1, errors.New("startY is greater than stopY")
+	}
+
+	return startY, stopY, nil
 }
 
 func convertToCumulativeRgbHistogram(input rgbHistogram) rgbHistogram {

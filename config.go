@@ -17,6 +17,8 @@ type configuration struct {
 	rollingaverage       int
 	jpegcompression      int
 	threads              int
+	startY               int
+	stopY                int
 }
 
 func collectConfigInformation() configuration {
@@ -26,6 +28,8 @@ func collectConfigInformation() configuration {
 	flag.IntVar(&config.rollingaverage, "rollingaverage", 15, "Number of frames to use for rolling average. 0 disables it.")
 	flag.IntVar(&config.jpegcompression, "jpegcompression", 95, "Level of JPEG compression. Must be between 1 - 100. Default is 95.")
 	flag.IntVar(&config.threads, "threads", runtime.NumCPU(), "Number of threads to use. Default is the detected number of cores.")
+	flag.IntVar(&config.startY, "startY", 0, "Y Coordinate where luminance analyzation is begin. Default is 0.")
+	flag.IntVar(&config.stopY, "stopY", -1, "Y Coordinate where luminance analyzation is stopped. Must not be smaller than startY. Default is end of image.")
 	flag.Parse()
 
 	//Test for illegal inputs
@@ -34,6 +38,12 @@ func collectConfigInformation() configuration {
 	}
 	if config.threads < 1 {
 		log.Fatalln("'threads' must be greater than 0")
+	}
+	if config.startY < 0 {
+		log.Fatalln("'startY' must be greater than 0")
+	}
+	if config.stopY != -1 && config.stopY < config.startY {
+		log.Fatalln("'stopY' must be greater than startY")
 	}
 	//Test for missing directory inputs
 	if config.sourceDirectory == "" {
